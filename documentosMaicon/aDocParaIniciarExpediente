@@ -1,0 +1,4 @@
+Seus únicos comandos para o fluxo de trabalho diário são:
+
+Para Ligar Tudo: docker-compose up -d
+Para Desligar Tudo: docker-compose down
