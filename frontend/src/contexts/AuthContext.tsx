@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
 import api from '../services/api';
 
 // Define a forma dos dados do usuário
@@ -44,7 +45,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const validateToken = async () => {
       const storedToken = localStorage.getItem('miga-token');
       if (storedToken) {
-        api.defaults.headers.Authorization = `Bearer ${storedToken}`;
         try {
           // Valida o token buscando os dados do usuário
           const response = await api.get('/auth/profile');
@@ -54,7 +54,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Se o token for inválido (ex: expirado), limpa o estado
           console.error("Sessão inválida, limpando token:", error);
           localStorage.removeItem('miga-token');
-          api.defaults.headers.Authorization = null;
         }
       }
       setLoading(false);
@@ -70,14 +69,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { access_token } = response.data;
       setToken(access_token);
       localStorage.setItem('miga-token', access_token);
-      api.defaults.headers.Authorization = `Bearer ${access_token}`;
+      
       // Após o login, buscar dados do usuário
       const userResponse = await api.get('/auth/profile');
       setUser(userResponse.data);
+      
+      notifications.show({
+        title: 'Login realizado com sucesso!',
+        message: 'Bem-vindo de volta à Plataforma Miga Personalizados',
+        color: 'green',
+      });
+      
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no login:', error);
-      // Adicionar tratamento de erro para o usuário
+      
+      // Tratamento de diferentes tipos de erro
+      let errorMessage = 'Erro inesperado. Tente novamente.';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Email ou senha incorretos.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Erro interno do servidor. Tente novamente mais tarde.';
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Erro de conexão. Verifique sua internet.';
+      }
+      
+      notifications.show({
+        title: 'Erro no login',
+        message: errorMessage,
+        color: 'red',
+      });
     } finally {
       setLoading(false);
     }
@@ -87,10 +109,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       await api.post('/auth/register', data);
+      
+      notifications.show({
+        title: 'Cadastro realizado com sucesso!',
+        message: 'Agora você pode fazer login com suas credenciais',
+        color: 'green',
+      });
+      
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no registro:', error);
-      // Adicionar tratamento de erro para o usuário
+      
+      // Tratamento de diferentes tipos de erro
+      let errorMessage = 'Erro inesperado. Tente novamente.';
+      
+      if (error.response?.status === 400) {
+        errorMessage = 'Dados inválidos. Verifique os campos e tente novamente.';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Erro interno do servidor. Tente novamente mais tarde.';
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Erro de conexão. Verifique sua internet.';
+      }
+      
+      notifications.show({
+        title: 'Erro no cadastro',
+        message: errorMessage,
+        color: 'red',
+      });
     } finally {
       setLoading(false);
     }
@@ -100,7 +147,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setToken(null);
     localStorage.removeItem('miga-token');
-    api.defaults.headers.Authorization = null;
     navigate('/login');
   };
 

@@ -1,15 +1,19 @@
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { DashboardPage } from './pages/DashboardPage';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
     <MantineProvider>
+      <Notifications />
       <Router>
         <AuthProvider>
           <Routes>
@@ -18,8 +22,13 @@ function App() {
             
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<AppLayout />}>
-                {/* Rotas aninhadas que aparecerão dentro do AppLayout */}
-                {/* Exemplo: <Route path="dashboard" element={<DashboardPage />} /> */}
+                <Route index element={<DashboardPage />} />
+                {/* Rotas futuras para os módulos */}
+                {/* <Route path="orders" element={<OrdersPage />} /> */}
+                {/* <Route path="customers" element={<CustomersPage />} /> */}
+                {/* <Route path="stock" element={<StockPage />} /> */}
+                {/* <Route path="financial" element={<FinancialPage />} /> */}
+                {/* <Route path="settings" element={<SettingsPage />} /> */}
               </Route>
             </Route>
 

@@ -20,6 +20,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Token inválido ou usuário não encontrado.');
     }
 
-    return { userId: payload.sub, email: payload.email, profile_type: user?.profile_type };
+    // Retorna os dados seguros do usuário (sem a senha)
+    return { 
+      id: user.id,
+      name: user.name,
+      email: user.email, 
+      profile_type: user.profile_type 
+    };
   }
 }
