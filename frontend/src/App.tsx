@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import CustomersPage from './pages/CustomersPage'; // Importa a nova página
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -23,9 +24,9 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<AppLayout />}>
                 <Route index element={<DashboardPage />} />
+                <Route path="customers" element={<CustomersPage />} />
                 {/* Rotas futuras para os módulos */}
                 {/* <Route path="orders" element={<OrdersPage />} /> */}
-                {/* <Route path="customers" element={<CustomersPage />} /> */}
                 {/* <Route path="stock" element={<StockPage />} /> */}
                 {/* <Route path="financial" element={<FinancialPage />} /> */}
                 {/* <Route path="settings" element={<SettingsPage />} /> */}

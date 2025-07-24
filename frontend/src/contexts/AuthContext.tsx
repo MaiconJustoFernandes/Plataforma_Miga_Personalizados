@@ -5,7 +5,7 @@ import api from '../services/api';
 
 // Define a forma dos dados do usuário
 interface User {
-  id: number;
+  id: string; // Alterado para string para corresponder ao UUID do backend
   name: string;
   email: string;
   profile_type: 'OPERACIONAL' | 'GERENCIAL';
