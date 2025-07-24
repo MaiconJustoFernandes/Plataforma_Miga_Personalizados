@@ -8,6 +8,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import CustomersPage from './pages/CustomersPage'; // Importa a nova página
+import SuppliersPage from './pages/SuppliersPage'; // Importar a nova página
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -25,6 +26,7 @@ function App() {
               <Route path="/" element={<AppLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="customers" element={<CustomersPage />} />
+                <Route path="suppliers" element={<SuppliersPage />} /> {/* Adicionar a nova rota */}
                 {/* Rotas futuras para os módulos */}
                 {/* <Route path="orders" element={<OrdersPage />} /> */}
                 {/* <Route path="stock" element={<StockPage />} /> */}

@@ -6,6 +6,7 @@ import {
   IconBox,
   IconReportMoney,
   IconSettings,
+  IconTruckDelivery, // Adicionar ícone para fornecedores
 } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
@@ -14,6 +15,7 @@ const navLinks = [
   { icon: IconHome2, label: 'Dashboard', to: '/' },
   { icon: IconShoppingCart, label: 'Pedidos', to: '/orders' },
   { icon: IconUsers, label: 'Clientes', to: '/customers' },
+  { icon: IconTruckDelivery, label: 'Fornecedores', to: '/suppliers' },
   { icon: IconBox, label: 'Estoque', to: '/stock' },
   { icon: IconReportMoney, label: 'Financeiro', to: '/financial' },
   { icon: IconSettings, label: 'Configurações', to: '/settings' },
