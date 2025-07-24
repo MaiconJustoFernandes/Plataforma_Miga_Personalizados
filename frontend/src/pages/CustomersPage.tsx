@@ -11,10 +11,12 @@ import {
   Box,
   Select,
   Grid,
+  Input, // Adicionar Input
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import { IconPencil, IconTrash, IconSearch } from '@tabler/icons-react';
+import { IMaskInput } from 'react-imask';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
 import { useAuth } from '../contexts/AuthContext';
@@ -263,10 +265,29 @@ const CustomersPage: React.FC = () => {
               <TextInput label="Nome Completo" placeholder="Nome do cliente" {...form.getInputProps('fullName')} required />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput label="CPF/CNPJ" placeholder="000.000.000-00" {...form.getInputProps('cpfCnpj')} required />
+              <Input.Wrapper label="CPF/CNPJ" required error={form.errors.cpfCnpj}>
+                <Input
+                  component={IMaskInput}
+                  mask={[
+                    { mask: '000.000.000-00' },
+                    { mask: '00.000.000/0000-00' },
+                  ]}
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  onAccept={(value: any) => form.setFieldValue('cpfCnpj', value)}
+                  value={form.values.cpfCnpj}
+                />
+              </Input.Wrapper>
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
-              <TextInput label="WhatsApp" placeholder="(00) 00000-0000" {...form.getInputProps('whatsapp')} required />
+              <Input.Wrapper label="WhatsApp" required error={form.errors.whatsapp}>
+                <Input
+                  component={IMaskInput}
+                  mask="(00) 00000-0000"
+                  placeholder="(00) 00000-0000"
+                  onAccept={(value: any) => form.setFieldValue('whatsapp', value)}
+                  value={form.values.whatsapp}
+                />
+              </Input.Wrapper>
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
               <TextInput label="E-mail" placeholder="contato@cliente.com" {...form.getInputProps('email')} required />

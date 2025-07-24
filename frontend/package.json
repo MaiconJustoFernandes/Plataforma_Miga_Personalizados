@@ -16,9 +16,11 @@
     "@mantine/modals": "^8.2.1",
     "@mantine/notifications": "^8.2.1",
     "@tabler/icons-react": "^3.34.1",
+    "@types/react-input-mask": "^3.0.6",
     "axios": "^1.10.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-imask": "^7.6.1",
     "react-router-dom": "^7.7.0"
   },
   "devDependencies": {
