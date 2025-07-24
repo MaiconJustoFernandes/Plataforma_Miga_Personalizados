@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Table,
   Button,
@@ -15,7 +16,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { IconPencil, IconTrash, IconSearch } from '@tabler/icons-react';
+import { IconPencil, IconTrash, IconSearch, IconEye } from '@tabler/icons-react';
 import { IMaskInput } from 'react-imask';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
@@ -26,6 +27,8 @@ import axios from 'axios';
 
 const CustomersPage: React.FC = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [search, setSearch] = useState('');
@@ -140,6 +143,18 @@ const CustomersPage: React.FC = () => {
     open();
   };
 
+  // Verificar se deve abrir modal de edição via URL
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && customers.length > 0) {
+      const customerToEdit = customers.find(c => c.id === editId);
+      if (customerToEdit) {
+        openModal(customerToEdit);
+        setSearchParams({}); // Limpar o parâmetro após uso
+      }
+    }
+  }, [customers, searchParams, setSearchParams]);
+
   const handleSubmit = async (values: typeof form.values) => {
     if (!user || !token) return;
 
@@ -207,6 +222,10 @@ const CustomersPage: React.FC = () => {
       },
     });
 
+  const viewCustomerDetails = (customerId: string) => {
+    navigate(`/customers/${customerId}`);
+  };
+
   const rows = filteredCustomers.map((customer) => (
     <Table.Tr key={customer.id}>
       <Table.Td>{customer.fullName}</Table.Td>
@@ -215,6 +234,9 @@ const CustomersPage: React.FC = () => {
       <Table.Td>{customer.email}</Table.Td>
       <Table.Td>
         <Group gap="xs">
+          <ActionIcon variant="subtle" color="green" onClick={() => viewCustomerDetails(customer.id)}>
+            <IconEye size={16} />
+          </ActionIcon>
           <ActionIcon variant="subtle" color="blue" onClick={() => openModal(customer)}>
             <IconPencil size={16} />
           </ActionIcon>
@@ -308,7 +330,27 @@ const CustomersPage: React.FC = () => {
                 />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 4 }}>
-                <TextInput label="Origem" placeholder="Como nos conheceu?" {...form.getInputProps('origin')} />
+                <Select
+                    label="Origem (Como nos conheceu?)"
+                    placeholder="Selecione como nos conheceu"
+                    data={[
+                        'Instagram',
+                        'Facebook',
+                        'WhatsApp',
+                        'Google',
+                        'Indicação de amigo',
+                        'Indicação de cliente',
+                        'Site/Blog',
+                        'YouTube',
+                        'TikTok',
+                        'Panfleto/Folder',
+                        'Evento/Feira',
+                        'Outro'
+                    ]}
+                    {...form.getInputProps('origin')}
+                    searchable
+                    clearable
+                />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 3 }}>
               <TextInput label="CEP" placeholder="00000-000" {...form.getInputProps('cep')} onBlur={handleCepBlur} required />

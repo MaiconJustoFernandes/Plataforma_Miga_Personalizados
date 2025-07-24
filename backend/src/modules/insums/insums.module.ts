@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InsumsController } from './insums.controller';
 import { InsumsService } from './insums.service';
-import { Insum } from './insums/entities/insum.entity';
+import { Insum } from './entities/insum.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Insum])],
   controllers: [InsumsController],
   providers: [InsumsService],
+  exports: [TypeOrmModule, InsumsService],
 })
 export class InsumsModule {}

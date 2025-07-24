@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Insum } from './insums/entities/insum.entity';
-import { CreateInsumDto } from './insums/dto/create-insum.dto';
-import { UpdateInsumDto } from './insums/dto/update-insum.dto';
+import { Insum } from './entities/insum.entity';
+import { CreateInsumDto } from './dto/create-insum.dto';
+import { UpdateInsumDto } from './dto/update-insum.dto';
 
 @Injectable()
 export class InsumsService {

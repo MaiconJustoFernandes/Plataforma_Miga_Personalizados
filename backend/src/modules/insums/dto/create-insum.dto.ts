@@ -8,11 +8,11 @@ export class CreateInsumDto {
 
   @IsString()
   @IsNotEmpty()
-  unitOfMeasure: string;
+  unitOfMeasurement: string;
 
   @IsNumber()
   @IsPositive()
-  stock: number;
+  currentStock: number;
 
   @IsNumber()
   @IsPositive()

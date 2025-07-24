@@ -12,12 +12,15 @@ export const getCustomers = async (token: string) => {
 };
 
 // Busca um cliente pelo ID
-export const getCustomerById = async (id: string, token: string) => {
+export const getCustomer = async (id: string, token: string) => {
   const response = await axios.get(`${API_URL}/customers/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };
+
+// Alias para compatibilidade
+export const getCustomerById = getCustomer;
 
 // Cria um novo cliente
 export const createCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>, token: string) => {

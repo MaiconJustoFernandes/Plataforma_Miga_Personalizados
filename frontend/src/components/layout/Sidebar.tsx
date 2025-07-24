@@ -6,9 +6,9 @@ import {
   IconBox,
   IconReportMoney,
   IconSettings,
-  IconTruckDelivery, // Adicionar ícone para fornecedores
+  IconTruckDelivery,
   IconGauge,
-  IconLogout,
+  IconPackage,
 } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
@@ -18,10 +18,11 @@ const navLinks = [
   { icon: IconShoppingCart, label: 'Pedidos', to: '/orders' },
   { icon: IconUsers, label: 'Clientes', to: '/customers' },
   { icon: IconTruckDelivery, label: 'Fornecedores', to: '/suppliers' },
+  { icon: IconGauge, label: 'Insumos', to: '/insums' },
+  { icon: IconPackage, label: 'Produtos', to: '/products' },
   { icon: IconBox, label: 'Estoque', to: '/stock' },
   { icon: IconReportMoney, label: 'Financeiro', to: '/financial' },
   { icon: IconSettings, label: 'Configurações', to: '/settings' },
-  { icon: IconBox, label: 'Insumos', to: '/insums' }, // Adicionar link para insumos
 ];
 
 export function Sidebar() {

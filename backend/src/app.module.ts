@@ -8,8 +8,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { CustomersModule } from './modules/customers/customers.module';
-import { SuppliersModule } from './modules/suppliers.module';
-import { InsumsModule } from './modules/insums.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { InsumsModule } from './modules/insums/insums.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { InsumsModule } from './modules/insums.module';
     CustomersModule,
     SuppliersModule,
     InsumsModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -8,13 +8,13 @@ export class Insum {
   @Column({ type: 'varchar', length: 255, unique: true })
   name: string;
 
-  @Column({ type: 'varchar', length: 50 })
-  unitOfMeasure: string;
+  @Column({ type: 'varchar', length: 50, name: 'unit_of_measurement' })
+  unitOfMeasurement: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  stock: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'current_stock' })
+  currentStock: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'average_cost' })
   averageCost: number;
 
   @CreateDateColumn()

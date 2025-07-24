@@ -32,14 +32,14 @@ const InsumsPage: React.FC = () => {
   const form = useForm({
     initialValues: {
       name: '',
-      unitOfMeasure: '',
-      stock: 0,
+      unitOfMeasurement: '',
+      currentStock: 0,
       averageCost: 0,
     },
     validate: {
       name: (value) => (value.length < 3 ? 'O nome deve ter pelo menos 3 caracteres' : null),
-      unitOfMeasure: (value) => (value.length === 0 ? 'Unidade de medida é obrigatória' : null),
-      stock: (value) => (value < 0 ? 'Estoque não pode ser negativo' : null),
+      unitOfMeasurement: (value) => (value.length === 0 ? 'Unidade de medida é obrigatória' : null),
+      currentStock: (value) => (value < 0 ? 'Estoque não pode ser negativo' : null),
       averageCost: (value) => (value < 0 ? 'Custo não pode ser negativo' : null),
     },
   });
@@ -147,9 +147,9 @@ const InsumsPage: React.FC = () => {
   const rows = filteredInsums.map((insum) => (
     <Table.Tr key={insum.id}>
       <Table.Td>{insum.name}</Table.Td>
-      <Table.Td>{insum.unitOfMeasure}</Table.Td>
-      <Table.Td>{insum.stock}</Table.Td>
-      <Table.Td>R$ {insum.averageCost.toFixed(2)}</Table.Td>
+      <Table.Td>{insum.unitOfMeasurement}</Table.Td>
+      <Table.Td>{Number(insum.currentStock || 0)}</Table.Td>
+      <Table.Td>R$ {Number(insum.averageCost || 0).toFixed(2)}</Table.Td>
       <Table.Td>
         <Group gap="xs">
           <ActionIcon variant="subtle" color="blue" onClick={() => openModal(insum)}>
@@ -202,24 +202,43 @@ const InsumsPage: React.FC = () => {
               <TextInput label="Nome do Insumo" placeholder="Ex: Caneca de Porcelana" {...form.getInputProps('name')} required />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
-                <Select
-                    label="Unidade de Medida"
-                    placeholder="Selecione a unidade"
-                    data={['Unidade', 'Caixa', 'Metro', 'Kg']}
-                    {...form.getInputProps('unitOfMeasure')}
-                    required
-                />
+              <Select
+                label="Unidade de Medida"
+                placeholder="Selecione a unidade"
+                data={[
+                  'UN (Unidade)',
+                  'KG (Quilograma)',
+                  'G (Grama)',
+                  'L (Litro)',
+                  'ML (Mililitro)',
+                  'M (Metro)',
+                  'CM (Centímetro)',
+                  'M² (Metro Quadrado)',
+                  'M³ (Metro Cúbico)',
+                  'PC (Peça)',
+                  'CX (Caixa)',
+                  'PCT (Pacote)'
+                ]}
+                {...form.getInputProps('unitOfMeasurement')}
+                searchable
+                required
+              />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 6 }}>
-              <NumberInput label="Estoque Atual" placeholder="0" {...form.getInputProps('stock')} required />
+               <NumberInput
+                label="Estoque Atual"
+                placeholder="0"
+                min={0}
+                {...form.getInputProps('currentStock')}
+                required
+              />
             </Grid.Col>
-            <Grid.Col span={12}>
+            <Grid.Col span={{ base: 12, md: 6 }}>
               <NumberInput
-                label="Custo Médio Ponderado"
+                label="Custo Médio (R$)"
                 placeholder="0.00"
-                decimalScale={2}
-                fixedDecimalScale
-                leftSection="R$"
+                step={0.01}
+                min={0}
                 {...form.getInputProps('averageCost')}
                 required
               />

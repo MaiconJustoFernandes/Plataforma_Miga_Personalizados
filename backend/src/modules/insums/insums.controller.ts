@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { InsumsService } from './insums.service';
-import { CreateInsumDto } from './insums/dto/create-insum.dto';
-import { UpdateInsumDto } from './insums/dto/update-insum.dto';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { CreateInsumDto } from './dto/create-insum.dto';
+import { UpdateInsumDto } from './dto/update-insum.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('insums')

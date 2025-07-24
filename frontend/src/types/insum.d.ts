@@ -2,8 +2,8 @@
 export interface Insum {
   id: string;
   name: string;
-  unitOfMeasure: string;
-  stock: number;
+  unitOfMeasurement: string;
+  currentStock: number;
   averageCost: number;
   createdAt: string;
   updatedAt: string;

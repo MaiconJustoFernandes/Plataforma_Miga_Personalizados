@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
-import { CreateSupplierDto } from './suppliers/dto/create-supplier.dto';
-import { UpdateSupplierDto } from './suppliers/dto/update-supplier.dto';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { CreateSupplierDto } from './dto/create-supplier.dto';
+import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('suppliers')
