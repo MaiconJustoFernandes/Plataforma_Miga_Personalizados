@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 
 async function bootstrap() {
+  initializeTransactionalContext(); // Inicializa o contexto transacional
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 

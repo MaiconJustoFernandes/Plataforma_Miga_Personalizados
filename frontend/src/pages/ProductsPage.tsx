@@ -53,23 +53,20 @@ const ProductsPage: React.FC = () => {
     },
   });
 
-  // Cálculo do custo de produção em tempo real
+  // --- Lógica de Cálculo Memoizada ---
   const productionCost = useMemo(() => {
     return composition.reduce((total, item) => {
       const insum = insums.find(i => i.id === item.insumId);
-      if (insum) {
-        return total + (insum.averageCost * item.quantityUsed);
-      }
-      return total;
+      return total + (insum ? insum.averageCost * item.quantityUsed : 0);
     }, 0);
   }, [composition, insums]);
 
-  // Cálculo da margem de lucro
   const profitMargin = useMemo(() => {
     if (form.values.salePrice <= 0 || productionCost <= 0) return 0;
     return ((form.values.salePrice - productionCost) / form.values.salePrice) * 100;
   }, [form.values.salePrice, productionCost]);
 
+  // --- Busca de Dados ---
   const fetchProducts = async () => {
     if (user && token) {
       try {
@@ -101,10 +98,13 @@ const ProductsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchInsums();
-  }, [user]);
+    if (user && token) {
+      fetchProducts();
+      fetchInsums();
+    }
+  }, [user, token]);
 
+  // --- Manipuladores de Eventos e Estado ---
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.currentTarget.value);
   };
@@ -115,8 +115,15 @@ const ProductsPage: React.FC = () => {
     );
   }, [products, search]);
 
+  const insumOptions = useMemo(() => 
+    insums.map(insum => ({
+      value: insum.id,
+      label: `${insum.name} (${insum.unitOfMeasurement})`,
+    })),
+  [insums]);
+
   const addCompositionItem = () => {
-    setComposition(prev => [...prev, { insumId: '', quantityUsed: 0 }]);
+    setComposition(prev => [...prev, { insumId: '', quantityUsed: 1 }]);
   };
 
   const removeCompositionItem = (index: number) => {
@@ -134,20 +141,19 @@ const ProductsPage: React.FC = () => {
   const openModal = (product: Product | null) => {
     setEditingProduct(product);
     form.reset();
-    setComposition([]);
     
     if (product) {
       form.setValues({
         name: product.name,
         salePrice: product.salePrice,
       });
-      
-      // Carregar composição existente
       const existingComposition = product.composition.map(comp => ({
         insumId: comp.insum.id,
         quantityUsed: comp.quantityUsed,
       }));
       setComposition(existingComposition);
+    } else {
+      setComposition([]);
     }
     
     open();
@@ -156,58 +162,29 @@ const ProductsPage: React.FC = () => {
   const handleSubmit = async (values: typeof form.values) => {
     if (!user || !token) return;
 
-    // Validar composição
-    if (composition.length === 0) {
+    if (composition.length === 0 || composition.some(item => !item.insumId || item.quantityUsed <= 0)) {
       notifications.show({
-        title: 'Erro de validação',
-        message: 'É necessário adicionar pelo menos um insumo à composição.',
+        title: 'Erro de Validação',
+        message: 'A composição deve ter pelo menos um insumo com quantidade válida.',
         color: 'red',
       });
       return;
     }
 
-    const hasInvalidComposition = composition.some(item => 
-      !item.insumId || item.quantityUsed <= 0
-    );
-
-    if (hasInvalidComposition) {
-      notifications.show({
-        title: 'Erro de validação',
-        message: 'Todos os insumos devem ter uma quantidade válida.',
-        color: 'red',
-      });
-      return;
-    }
-
-    const productData: CreateProductData = {
-      ...values,
-      composition: composition,
-    };
+    const productData: CreateProductData = { ...values, composition };
 
     try {
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData, token);
-        notifications.show({
-          title: 'Produto atualizado',
-          message: 'O produto foi atualizado com sucesso.',
-          color: 'green',
-        });
+        notifications.show({ title: 'Sucesso', message: 'Produto atualizado com sucesso.', color: 'green' });
       } else {
         await createProduct(productData, token);
-        notifications.show({
-          title: 'Produto criado',
-          message: 'O novo produto foi criado com sucesso.',
-          color: 'green',
-        });
+        notifications.show({ title: 'Sucesso', message: 'Produto criado com sucesso.', color: 'green' });
       }
       close();
       fetchProducts();
     } catch (error) {
-      notifications.show({
-        title: 'Erro',
-        message: 'Ocorreu um erro ao salvar o produto.',
-        color: 'red',
-      });
+      notifications.show({ title: 'Erro', message: 'Ocorreu um erro ao salvar o produto.', color: 'red' });
     }
   };
 
@@ -215,88 +192,59 @@ const ProductsPage: React.FC = () => {
     modals.openConfirmModal({
       title: 'Excluir Produto',
       centered: true,
-      children: (
-        <Text size="sm">
-          Você tem certeza que deseja excluir este produto? Esta ação é irreversível.
-        </Text>
-      ),
+      children: <Text size="sm">Tem certeza que deseja excluir este produto? Esta ação é irreversível.</Text>,
       labels: { confirm: 'Excluir', cancel: "Cancelar" },
       confirmProps: { color: 'red' },
       onConfirm: async () => {
         if (user && token) {
           try {
             await deleteProduct(id, token);
-            notifications.show({
-              title: 'Produto excluído',
-              message: 'O produto foi excluído com sucesso.',
-              color: 'green',
-            });
+            notifications.show({ title: 'Produto Excluído', message: 'O produto foi excluído com sucesso.', color: 'green' });
             fetchProducts();
           } catch (error) {
-            notifications.show({
-              title: 'Erro ao excluir',
-              message: 'Não foi possível excluir o produto.',
-              color: 'red',
-            });
+            notifications.show({ title: 'Erro', message: 'Não foi possível excluir o produto.', color: 'red' });
           }
         }
       },
     });
 
-  const getProductCost = (product: Product) => {
-    // Se o backend ainda não calculou, calcular no frontend
-    if (!product.productionCost || product.productionCost === 0) {
-      return product.composition.reduce((total, comp) => {
-        return total + (comp.insum.averageCost * comp.quantityUsed);
-      }, 0);
-    }
-    return product.productionCost;
+  // --- Funções de Cálculo para a Tabela ---
+  const getProductCost = (product: Product): number => {
+    const cost = product.productionCost ?? product.composition.reduce((total, comp) => total + (comp.insum.averageCost * comp.quantityUsed), 0);
+    return Number(cost);
   };
 
   const getProductMargin = (product: Product) => {
-    // Se o backend ainda não calculou, calcular no frontend
-    if (!product.profitMargin || product.profitMargin === 0) {
-      const cost = getProductCost(product);
-      if (product.salePrice <= 0 || cost <= 0) return 0;
-      return ((product.salePrice - cost) / product.salePrice) * 100;
-    }
-    return product.profitMargin;
+    const cost = getProductCost(product);
+    if (product.salePrice <= 0 || cost <= 0) return 0;
+    return ((product.salePrice - cost) / product.salePrice) * 100;
   };
 
-  const rows = filteredProducts.map((product) => (
-    <Table.Tr key={product.id}>
-      <Table.Td>{product.name}</Table.Td>
-      <Table.Td>R$ {Number(product.salePrice || 0).toFixed(2)}</Table.Td>
-      <Table.Td>R$ {getProductCost(product).toFixed(2)}</Table.Td>
-      <Table.Td>
-        <Badge color={getProductMargin(product) > 20 ? 'green' : getProductMargin(product) > 10 ? 'yellow' : 'red'}>
-          {getProductMargin(product).toFixed(1)}%
-        </Badge>
-      </Table.Td>
-      <Table.Td>{product.composition.length} insumos</Table.Td>
-      <Table.Td>
-        <Group gap="xs">
-          <ActionIcon variant="subtle" color="blue" onClick={() => openModal(product)}>
-            <IconPencil size={16} />
-          </ActionIcon>
-          <ActionIcon variant="subtle" color="red" onClick={() => openDeleteModal(product.id)}>
-            <IconTrash size={16} />
-          </ActionIcon>
-        </Group>
-      </Table.Td>
-    </Table.Tr>
-  ));
-
-  const availableInsums = insums.filter(insum => 
-    !composition.some(comp => comp.insumId === insum.id)
-  );
+  // --- Renderização ---
+  const rows = filteredProducts.map((product) => {
+    const margin = getProductMargin(product);
+    const marginColor = margin > 20 ? 'green' : margin > 10 ? 'yellow' : 'red';
+    return (
+      <Table.Tr key={product.id}>
+        <Table.Td>{product.name}</Table.Td>
+        <Table.Td>R$ {Number(product.salePrice || 0).toFixed(2)}</Table.Td>
+        <Table.Td>R$ {getProductCost(product).toFixed(2)}</Table.Td>
+        <Table.Td><Badge color={marginColor}>{margin.toFixed(1)}%</Badge></Table.Td>
+        <Table.Td>{product.composition.length} insumos</Table.Td>
+        <Table.Td>
+          <Group gap="xs">
+            <ActionIcon variant="subtle" color="blue" onClick={() => openModal(product)}><IconPencil size={16} /></ActionIcon>
+            <ActionIcon variant="subtle" color="red" onClick={() => openDeleteModal(product.id)}><IconTrash size={16} /></ActionIcon>
+          </Group>
+        </Table.Td>
+      </Table.Tr>
+    );
+  });
 
   return (
     <Box>
       <Group justify="space-between" mb="md">
-        <Text fz="lg" fw={500}>
-          Gestão de Produtos
-        </Text>
+        <Text fz="lg" fw={500}>Gestão de Produtos</Text>
         <Button onClick={() => openModal(null)}>Adicionar Produto</Button>
       </Group>
 
@@ -320,120 +268,93 @@ const ProductsPage: React.FC = () => {
               <Table.Th>Ações</Table.Th>
             </Table.Tr>
           </Table.Thead>
-          <Table.Tbody>{rows.length > 0 ? rows : <Table.Tr><Table.Td colSpan={6}><Text ta="center">Nenhum produto encontrado.</Text></Table.Td></Table.Tr>}</Table.Tbody>
+          <Table.Tbody>
+            {rows.length > 0 ? rows : <Table.Tr><Table.Td colSpan={6}><Text ta="center">Nenhum produto encontrado.</Text></Table.Td></Table.Tr>}
+          </Table.Tbody>
         </Table>
       </ScrollArea>
 
-      <Modal opened={opened} onClose={close} title={editingProduct ? 'Editar Produto' : 'Adicionar Produto'} size="xl">
+      <Modal 
+        opened={opened} 
+        onClose={close} 
+        title={editingProduct ? 'Editar Produto' : 'Adicionar Produto'} 
+        size="xl"
+      >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Grid>
             <Grid.Col span={{ base: 12, md: 8 }}>
               <TextInput label="Nome do Produto" placeholder="Ex: Caneca Personalizada" {...form.getInputProps('name')} required />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 4 }}>
-              <NumberInput
-                label="Preço de Venda (R$)"
-                placeholder="0.00"
-                step={0.01}
-                min={0}
-                {...form.getInputProps('salePrice')}
-                required
-              />
+              <NumberInput label="Preço de Venda (R$)" placeholder="0.00" step={0.01} min={0} {...form.getInputProps('salePrice')} required />
             </Grid.Col>
           </Grid>
 
-          <Divider my="md" />
+          <Divider my="lg" />
 
-          <Card withBorder>
+          <Card withBorder p="md">
             <Stack gap="md">
               <Group justify="space-between">
                 <Text fw={500}>Ficha de Composição</Text>
-                <Button 
-                  size="xs" 
-                  variant="light" 
-                  leftSection={<IconPlus size={14} />}
-                  onClick={addCompositionItem}
-                  disabled={availableInsums.length === 0}
-                >
+                <Button size="xs" variant="light" leftSection={<IconPlus size={14} />} onClick={addCompositionItem} disabled={insums.length === 0}>
                   Adicionar Insumo
                 </Button>
               </Group>
 
               {composition.length === 0 ? (
-                <Text c="dimmed" ta="center" py="md">
-                  Nenhum insumo adicionado. Clique em "Adicionar Insumo" para começar.
-                </Text>
+                <Text c="dimmed" ta="center" py="md">Nenhum insumo adicionado.</Text>
               ) : (
                 <Stack gap="sm">
-                  {composition.map((item, index) => (
-                    <Group key={index} align="end">
-                      <Select
-                        label="Insumo"
-                        placeholder="Selecione um insumo"
-                        data={[
-                          ...insums
-                            .filter(insum => insum.id === item.insumId)
-                            .map(insum => ({
-                              value: insum.id,
-                              label: `${insum.name} (${insum.unitOfMeasurement})`,
-                            })),
-                          ...availableInsums.map(insum => ({
-                            value: insum.id,
-                            label: `${insum.name} (${insum.unitOfMeasurement})`,
-                          }))
-                        ]}
-                        value={item.insumId}
-                        onChange={(value) => updateCompositionItem(index, 'insumId', value || '')}
-                        style={{ flex: 1 }}
-                        required
-                      />
-                      <NumberInput
-                        label="Quantidade"
-                        placeholder="0"
-                        min={0}
-                        step={0.1}
-                        value={item.quantityUsed}
-                        onChange={(value) => updateCompositionItem(index, 'quantityUsed', Number(value) || 0)}
-                        style={{ width: '120px' }}
-                        required
-                      />
-                      <Text size="sm" c="dimmed" style={{ width: '80px' }}>
-                        {item.insumId ? `R$ ${(insums.find(i => i.id === item.insumId)?.averageCost || 0).toFixed(2)}` : '-'}
-                      </Text>
-                      <ActionIcon color="red" onClick={() => removeCompositionItem(index)}>
-                        <IconX size={16} />
-                      </ActionIcon>
-                    </Group>
-                  ))}
+                  {composition.map((item, index) => {
+                    const selectedInsum = insums.find(i => i.id === item.insumId);
+                    const itemCost = selectedInsum ? selectedInsum.averageCost * item.quantityUsed : 0;
+                    return (
+                      <Group key={index} align="flex-start" wrap="nowrap">
+                        <Select
+                          label="Insumo"
+                          placeholder="Selecione um insumo"
+                          data={insumOptions}
+                          value={item.insumId}
+                          onChange={(value) => updateCompositionItem(index, 'insumId', value || '')}
+                          searchable
+                          required
+                          comboboxProps={{ withinPortal: true }}
+                          style={{ flex: 1 }}
+                        />
+                        <NumberInput
+                          label="Quantidade"
+                          placeholder="1"
+                          min={0.01}
+                          step={0.1}
+                          value={item.quantityUsed}
+                          onChange={(value) => updateCompositionItem(index, 'quantityUsed', Number(value) || 0)}
+                          style={{ width: 120 }}
+                          required
+                        />
+                        <Box style={{ width: 100, paddingTop: 28 }}>
+                           <Text size="sm" c="dimmed">Custo: R$ {itemCost.toFixed(2)}</Text>
+                        </Box>
+                        <ActionIcon color="red" onClick={() => removeCompositionItem(index)} style={{ marginTop: 28 }}>
+                          <IconX size={16} />
+                        </ActionIcon>
+                      </Group>
+                    );
+                  })}
                 </Stack>
               )}
 
               <Divider />
 
-              <Group justify="space-between">
-                <div>
-                  <Text size="lg" fw={500}>
-                    Custo de Produção Calculado: 
-                    <Text span c="blue" ml="xs">R$ {productionCost.toFixed(2)}</Text>
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    Margem de Lucro Calculada: 
-                    <Text 
-                      span 
-                      c={profitMargin > 20 ? 'green' : profitMargin > 10 ? 'yellow' : 'red'} 
-                      ml="xs"
-                    >
-                      {profitMargin.toFixed(1)}%
-                    </Text>
-                  </Text>
-                </div>
+              <Group justify="space-between" align="center">
+                  <Text size="lg" fw={500}>Custo Total: <Text span c="blue" fw={700}>R$ {productionCost.toFixed(2)}</Text></Text>
+                  <Text size="sm" c="dimmed">Margem: <Text span c={profitMargin > 20 ? 'green' : profitMargin > 10 ? 'yellow' : 'red'} fw={500}>{profitMargin.toFixed(1)}%</Text></Text>
               </Group>
             </Stack>
           </Card>
 
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={close}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button type="submit">Salvar Produto</Button>
           </Group>
         </form>
       </Modal>

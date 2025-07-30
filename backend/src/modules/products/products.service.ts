@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { Transactional } from 'typeorm-transactional';
 import { Product } from './entities/product.entity';
 import { ProductComposition } from './entities/product-composition.entity';
 import { Insum } from '../insums/entities/insum.entity';
@@ -31,40 +31,52 @@ export class ProductsService {
         if (!insum) {
           throw new NotFoundException(`Insumo com ID ${item.insumId} não encontrado.`);
         }
-        productionCost += insum.averageCost * item.quantityUsed;
+        // Garantir que averageCost e quantityUsed são números antes do cálculo
+        const insumAverageCost = typeof insum.averageCost === 'number' ? insum.averageCost : 0;
+        const itemQuantityUsed = typeof item.quantityUsed === 'number' ? item.quantityUsed : 0;
+        productionCost += insumAverageCost * itemQuantityUsed;
       }
     }
+    // Garantir que productionCost é um número válido
+    productionCost = isNaN(productionCost) ? 0 : productionCost;
 
     // Calcular margem de lucro
-    const profitMargin = productData.salePrice > 0 && productionCost > 0 
-      ? ((productData.salePrice - productionCost) / productData.salePrice) * 100 
+    const profitMargin = productData.salePrice > 0
+      ? ((productData.salePrice - productionCost) / productData.salePrice) * 100
       : 0;
+    // Garantir que profitMargin é um número válido
+    const finalProfitMargin = isNaN(profitMargin) ? 0 : profitMargin;
 
-    const product = this.productRepository.create({
-      ...productData,
-      productionCost,
-      profitMargin,
-    });
-    const savedProduct = await this.productRepository.save(product);
+    try {
+      const product = this.productRepository.create({
+        ...productData,
+        productionCost,
+        profitMargin: finalProfitMargin,
+      });
+      const savedProduct = await this.productRepository.save(product);
 
-    if (composition && composition.length > 0) {
-      const compositionEntities = await Promise.all(
-        composition.map(async (item) => {
-          const insum = await this.insumRepository.findOne({ where: { id: item.insumId } });
-          if (!insum) {
-            throw new NotFoundException(`Insumo com ID ${item.insumId} não encontrado.`);
-          }
-          return this.productCompositionRepository.create({
-            product: savedProduct,
-            insum,
-            quantityUsed: item.quantityUsed,
-          });
-        }),
-      );
-      await this.productCompositionRepository.save(compositionEntities);
+      if (composition && composition.length > 0) {
+        const compositionEntities = await Promise.all(
+          composition.map(async (item) => {
+            const insum = await this.insumRepository.findOne({ where: { id: item.insumId } });
+            if (!insum) {
+              throw new NotFoundException(`Insumo com ID ${item.insumId} não encontrado.`);
+            }
+            return this.productCompositionRepository.create({
+              product: savedProduct,
+              insum,
+              quantityUsed: item.quantityUsed,
+            });
+          }),
+        );
+        await this.productCompositionRepository.save(compositionEntities);
+      }
+
+      return this.findOne(savedProduct.id);
+    } catch (error) {
+      console.error('Erro ao criar produto:', error);
+      throw error; // Re-lança o erro para que o NestJS ainda o trate como um 500
     }
-
-    return this.findOne(savedProduct.id);
   }
 
   findAll(): Promise<Product[]> {

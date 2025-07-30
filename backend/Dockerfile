@@ -1,5 +1,5 @@
 # Estágio de Build
-FROM node:18 AS build
+FROM node:20 AS build
 
 WORKDIR /usr/src/app
 
@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # Estágio de Produção
-FROM node:18
+FROM node:20
 
 WORKDIR /usr/src/app
 
