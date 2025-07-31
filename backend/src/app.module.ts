@@ -13,6 +13,8 @@ import { InsumsModule } from './modules/insums/insums.module';
 import { ProductsModule } from './modules/products/products.module';
 import { DataSource } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
+import { OrdersModule } from './modules/orders/orders.module';
+import { OrderItemsModule } from './modules/order-items/order-items.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
     SuppliersModule,
     InsumsModule,
     ProductsModule,
+    OrdersModule,
+    OrderItemsModule,
   ],
   controllers: [AppController],
   providers: [

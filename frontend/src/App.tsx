@@ -12,6 +12,7 @@ import CustomerDetailsPage from './pages/CustomerDetailsPage';
 import SuppliersPage from './pages/SuppliersPage';
 import InsumsPage from './pages/InsumsPage';
 import ProductsPage from './pages/ProductsPage';
+import CreateOrderPage from './pages/CreateOrderPage';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -33,6 +34,7 @@ function App() {
                 <Route path="suppliers" element={<SuppliersPage />} />
                 <Route path="insums" element={<InsumsPage />} />
                 <Route path="products" element={<ProductsPage />} />
+                <Route path="orders/new" element={<CreateOrderPage />} />
                 {/* Rotas futuras para os módulos */}
                 {/* <Route path="orders" element={<OrdersPage />} /> */}
                 {/* <Route path="stock" element={<StockPage />} /> */}
